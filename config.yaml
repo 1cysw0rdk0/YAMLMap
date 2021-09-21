@@ -1,0 +1,28 @@
+---
+
+# Scan_Name:
+#   ports:
+#     - 21
+#     - 22
+#   scripts:
+#     - ftp_script
+#   scan_type:sS
+#   out_type:oA
+
+
+FTP:
+  ports:
+    - 21
+    - 20
+  scripts:
+    - ftp_script
+  scan: sS
+  out: oA
+
+SSH:
+  ports:
+    - 22
+  scripts:
+    - ssh_script
+  scan: sS
+  out: oA
