@@ -42,6 +42,11 @@ def process_script_args(args):
     return '--script-args="' + args.strip() + '"'
 
 
+def process_misc_args(misc):
+    print(misc)
+    return misc
+
+
 def main():
     # Load in data
     args = handle_args()
@@ -72,19 +77,28 @@ def main():
             except KeyError:
                 pass
 
+        try:
+            scan_object.scanAttributes['misc'] = process_misc_args(scan['misc'])
+        except KeyError:
+            pass
+
         scan_type = "-" + scan['scan']
         out_type = "-" + scan['out']
         out_name = target_name + "_" + scan_name
 
         cur_time = (time.strftime("%d %b %H:%M:%S")).upper()
-        print(cur_time + "> Kicking off " + scan_name + " Scan")
+        print(cur_time + "> Kicking off '" + scan_name + "' Scan")
 
         cmd = [nmap, scan_type, out_type, out_name, "-iL", args.targets]
         for attribute in scan_object.scanAttributes:
-            cmd.append(scan_object.scanAttributes[attribute])
+            if type(scan_object.scanAttributes[attribute]) is list:
+                cmd.extend(scan_object.scanAttributes[attribute])
+            else:
+                cmd.append(scan_object.scanAttributes[attribute])
 
         # Print for testing
-        print(cmd)
+        print(cur_time + "> " + ' '.join(cmd))
         process = subprocess.run(cmd)
+
 
 main()
