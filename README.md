@@ -1,12 +1,16 @@
 # YAMLMap
-Levarage YAML to organize Nmap results for large target lists
+Leverage YAML to customize and organize Nmap results for large target lists.
 
 ## Setup
-###TODO###
-Nmap and PyYAML installed.
+```
+sudo apt install nmap
+pip3 -r install requirements.txt
+```
 
 ## Usage
-`python3 ./YamlMap.py [-config config.yaml] [-targets target.txt]`
+`./YamlMap.py [-config config.yaml] [-targets target.txt]`
+- -config defaults to config.yaml
+- -targets defaults to target.txt
 
 ## YAML Config
 
@@ -15,15 +19,14 @@ YAMLMap creates the Nmap scans based off of a yaml file (default: config.yaml).
 At the moment, the following fields are supported:
 * A unique name for the scan
 * A list of ports to scan
-* A list of .nse scripts to run
+* A list of .nse scripts to run (.nse not required)
+* A list of script arguments
 * A scan type (ex: sS, sV, sU)
 * An output type (ex: oA, oN, oX)
+* Miscellaneous Arguments via a misc tag
 
-Support for the following features is planned for the future:
-* Host discovery settings
-* Timing and Performance Settings
-
-Multiple scans can be specified in one Config.yaml file, and will be run sequentially. Results from the scans will be named using the unique scan name as the filename.
+Multiple scans can be specified in one Config.yaml file, and will be run sequentially.
+Results from the scans will be named using the name of the target list and the scan name.
 
 #### Config.yaml structure
 ```YAML
@@ -34,15 +37,21 @@ Scan_Name:
     - 22
   scripts:
     - script_name
-  scan_type:sS
-  out_type:oA
+  script_args: >
+    script.arg='value',
+    script2.arg='value2'
+  scan_type: sS
+  out_type: oA
+  misc:
+    - --open
+    - -g53
 ```
-
+Note that the order of the tags is irrelevant. Duplicating tags may break things.
 
 #### Config.yaml for an FTP scan
 ```YAML
 ---
-FTP:
+ftp:
   ports:
     - 21
     - 20
@@ -50,17 +59,25 @@ FTP:
     - ftp_anon
   scan: sS
   out: oA
-
+```
+Ports can be specified in ranges, using a `-` for all ports, using `all` for all ports
+#### Config.yaml for a scan which scans all TCP ports
+```YAML
+---
+all:
+  ports: all
+    - all
+    - "-"
+  scan: sS
+  out: oA
 ```
 
 ## Planned Features
-### Short Term 
-* Host discovery settings
-* Timing and performance settings
-* Miscellaneous settings 
 
-### Long Term
-* Aliases / scan nicknames (ex: stealth -> sS, version -> sV)
-* Option to zip results
-* Email alert when scan complete
-  *  Attach results?
+- [x] Host discovery settings
+- [x] Timing and performance settings 
+- [x] Miscellaneous settings
+- [ ] Aliases / scan nicknames (ex: stealth -> sS, version -> sV)
+- [ ] Option to zip results
+- [ ] Email alert when scan complete
+  - [ ] Attach results?
