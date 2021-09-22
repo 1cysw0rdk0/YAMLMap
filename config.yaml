@@ -1,21 +1,24 @@
 ---
 
 # Scan_Name:
+#   ports: all, "-", 1-1000
 #   ports:
 #     - 21
 #     - 22
 #   scripts:
 #     - ftp_script
-#   scan_type:sS
-#   out_type:oA
+#   script_args: >
+#     script.arg='value',
+#     script2.arg='value2'
+#   scan_type: sS
+#   out_type: oA
+#   misc:
+#     - --open
+#     - -g53
 
 
-FTP:
-  ports:
-    - 21
-    - 20
-  scripts:
-    - ftp_script
+all:
+  ports: all
   scan: sS
   out: oA
 
@@ -24,5 +27,8 @@ SSH:
     - 22
   scripts:
     - ssh_script
+  script_args: >
+    script.arg='value',
+    script2.arg='value2'
   scan: sS
   out: oA
