@@ -30,13 +30,16 @@ def process_ports(ports):
         return "-p-"
 
     ports = "-p" + ",".join([str(port) for port in ports])
-    print(ports)
     return ports
 
 
+def process_script_args(args):
+    return '--script-args="' + args.strip() + '"'
+
+
 def main():
+    # Load in data
     args = handle_args()
-    # Load in yaml config
     conf = yaml.safe_load(open(args.config))
 
     nmap = '/usr/bin/nmap'
@@ -56,6 +59,15 @@ def main():
             scripts = process_scripts(scan['scripts'])
         except KeyError:
             scripts = None
+
+        if scripts is not None:
+            try:
+                script_args = process_script_args(scan['script_args'])
+            except KeyError:
+                script_args = None
+        else:
+            script_args = None
+
 
         scan_type = "-" + scan['scan']
         out_type = "-" + scan['out']
