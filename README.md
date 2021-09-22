@@ -77,6 +77,7 @@ all:
 - [x] Host discovery settings
 - [x] Timing and performance settings 
 - [x] Miscellaneous settings
+- [ ] 'Global' settings for all scans
 - [ ] Aliases / scan nicknames (ex: stealth -> sS, version -> sV)
 - [ ] Option to zip results
 - [ ] Email alert when scan complete
