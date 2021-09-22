@@ -6,6 +6,11 @@ import yaml
 import time
 
 
+class scanObject:
+    def __init__(self):
+        self.scanAttributes = {}
+
+
 def handle_args():
     # Handle Commandline args
     parser = argparse.ArgumentParser(description='Organize and customize Nmap scans for large target sets')
@@ -43,30 +48,29 @@ def main():
     conf = yaml.safe_load(open(args.config))
 
     nmap = '/usr/bin/nmap'
-    target_name = ""
+    target_name = args.targets.split(".")[0]
 
     # Handle each scan
     for scan_name in conf:
         scan = conf[scan_name]
+        scan_object = scanObject()
 
         # Setup scan vars
         try:
-            ports = process_ports(scan['ports'])
+            scan_object.scanAttributes['ports'] = process_ports(scan['ports'])
         except KeyError:
-            ports = None
+            pass
 
         try:
-            scripts = process_scripts(scan['scripts'])
+            scan_object.scanAttributes['scripts'] = process_scripts(scan['scripts'])
         except KeyError:
             scripts = None
 
         if scripts is not None:
             try:
-                script_args = process_script_args(scan['script_args'])
+                scan_object.scanAttributes['script_args'] = process_script_args(scan['script_args'])
             except KeyError:
-                script_args = None
-        else:
-            script_args = None
+                pass
 
 
         scan_type = "-" + scan['scan']
@@ -76,8 +80,12 @@ def main():
         cur_time = (time.strftime("%d %b %H:%M:%S")).upper()
         print(cur_time + "> Kicking off " + scan_name + " Scan")
 
+        cmd = [nmap, scan_type, out_type, out_name, "-iL", args.targets]
+        for attribute in scan_object.scanAttributes:
+            cmd.append(scan_object.scanAttributes[attribute])
+
         # Print for testing
-        print([nmap, scan_type, ports, scripts, out_type, out_name, "-iL", args.targets])
+        print(cmd)
         #process = subprocess.run([nmap, scan_type, ports, scripts, out_type, out_name, "-iL", args.targets])
 
 main()
