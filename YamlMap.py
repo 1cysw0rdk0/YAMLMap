@@ -72,7 +72,6 @@ def main():
             except KeyError:
                 pass
 
-
         scan_type = "-" + scan['scan']
         out_type = "-" + scan['out']
         out_name = target_name + "_" + scan_name
@@ -86,6 +85,6 @@ def main():
 
         # Print for testing
         print(cmd)
-        #process = subprocess.run([nmap, scan_type, ports, scripts, out_type, out_name, "-iL", args.targets])
+        process = subprocess.run(cmd)
 
 main()
