@@ -16,6 +16,11 @@
 #     - --open
 #     - -g53
 
+default:
+  scan: sS
+  misc:
+    - --open
+    - -g53
 
 all:
   ports: all
@@ -32,3 +37,5 @@ SSH:
     script2.arg='value2'
   scan: sS
   out: oA
+  misc:
+    - -g53
