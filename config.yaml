@@ -1,5 +1,5 @@
 ---
-
+# Default is treated like any other scan, except not run
 # Scan_Name:
 #   ports: all, "-", 1-1000
 #   ports:
@@ -24,7 +24,6 @@ default:
 
 all:
   ports: all
-  scan: sS
   out: oA
 
 SSH:
@@ -35,7 +34,7 @@ SSH:
   script_args: >
     script.arg='value',
     script2.arg='value2'
-  scan: sS
+  scan: sV
   out: oA
   misc:
     - -g53
