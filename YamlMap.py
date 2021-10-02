@@ -76,26 +76,30 @@ def process_defaults(defaults, scan_object):
 
 
 def main():
+
     # Load in data
     args = handle_args()
     conf = yaml.safe_load(open(args.config))
 
+    # set up vars
     nmap = '/usr/bin/nmap'
     target_name = args.targets.split(".")[0]
     default = False
 
     # Handle each scan
     for scan_name in conf:
+
+        # set up vars for this scan instance
         scan = conf[scan_name]
+        scan_object = scanObject()
 
+        # default case flag
         is_default_case = False
-
         if scan_name == 'default':
             is_default_case = True
 
-        scan_object = scanObject()
-
-        # Setup scan vars
+        # read in port, scripts and script args
+        # translate to scan_object attributes
         try:
             scan_object.scanAttributes['ports'] = process_ports(scan['ports'])
         except KeyError:
@@ -106,6 +110,7 @@ def main():
         except KeyError:
             scripts = None
 
+        # if no scripts, ignore args
         if scripts is not None:
             try:
                 scan_object.scanAttributes['script_args'] = process_script_args(scan['script_args'])
@@ -117,19 +122,26 @@ def main():
         except KeyError:
             pass
 
+        # dont attempt to execute a default case
         if is_default_case:
             default = scan_object
             continue
+
+        # add the default settings to the current scan
         if default:
             scan_object = process_defaults(default, scan_object)
 
+        # more scan var setup
         scan_type = "-" + scan['scan']
         out_type = "-" + scan['out']
         out_name = target_name + "_" + scan_name
 
+        # time stamp
+        # nmap already has a time stamp, may remove
         cur_time = (time.strftime("%d %b %H:%M:%S")).upper()
         print(cur_time + "> Kicking off '" + scan_name + "' Scan")
 
+        # begin subprocess cmd setup
         cmd = [nmap, scan_type, out_type, out_name, "-iL", args.targets]
         for attribute in scan_object.scanAttributes:
             if type(scan_object.scanAttributes[attribute]) is list:
@@ -137,9 +149,10 @@ def main():
             else:
                 cmd.append(scan_object.scanAttributes[attribute])
 
+        # Execute
         # Print for testing
         print(cur_time + "> " + ' '.join(cmd))
-        #process = subprocess.run(cmd)
+        process = subprocess.run(cmd)
 
 
 main()
