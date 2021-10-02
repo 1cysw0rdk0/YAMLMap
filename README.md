@@ -25,6 +25,7 @@ At the moment, the following fields are supported:
 * An output type (ex: oA, oN, oX)
 * Miscellaneous Arguments via a misc tag
 
+### Basic Structure
 Multiple scans can be specified in one Config.yaml file, and will be run sequentially.
 Results from the scans will be named using the name of the target list and the scan name.
 
@@ -48,7 +49,7 @@ Scan_Name:
 ```
 Note that the order of the tags is irrelevant. Duplicating tags may break things.
 
-#### Config.yaml for an FTP scan
+#### Sample YAML for an FTP scan
 ```YAML
 ---
 ftp:
@@ -60,16 +61,39 @@ ftp:
   scan: sS
   out: oA
 ```
-Ports can be specified in ranges, using a `-` for all ports, using `all` for all ports
-#### Config.yaml for a scan which scans all TCP ports
+
+### Port Specification
+Ports can be specified in ranges in several ways. Separate two numbers on one line with a `-` to scan ports between them.
+Additionally, simply use a `-` or `all` to specify all 65,535 ports.
 ```YAML
 ---
 all:
   ports: all
     - all
     - "-"
+range:
+  ports:
+    - 1-1000
+    - 1-100
+```
+
+### Default Scan Settings
+Default settings can be set in a `default` scan block. Default settings apply to all scans, however any settings
+specified in a scan will override the default. 
+
+This can be used to cut down on some repetition in config files. Defaults will only be applied to scans that occur after
+they're declared in the config file. 
+
+#### Sample YAML for a default block
+```YAML
+default:
   scan: sS
   out: oA
+  misc:
+    - --open
+    - -g53
+all:
+  ports: all
 ```
 
 ## Planned Features
@@ -77,7 +101,8 @@ all:
 - [x] Host discovery settings
 - [x] Timing and performance settings 
 - [x] Miscellaneous settings
-- [ ] 'Global' settings for all scans
+- [x] Default settings for all scans
+- [ ] Create directory for scan results
 - [ ] Aliases / scan nicknames (ex: stealth -> sS, version -> sV)
 - [ ] Option to zip results
 - [ ] Email alert when scan complete
