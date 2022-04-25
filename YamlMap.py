@@ -4,6 +4,7 @@ import subprocess
 import argparse
 import yaml
 import time
+import os
 
 
 class scanObject:
@@ -17,8 +18,12 @@ def handle_args():
 
     parser.add_argument('-config', metavar='c', type=str, default='config.yaml', help='YAML Config file to run.')
     parser.add_argument('-targets', metavar='i', type=str, default='targets.txt', help='List of targets separated by newlines. Can be URL\'s, CIDR\'s, or IP\'s')
+    parser.add_argument('-output', metavar='o', type=str, default='./', help='Parent output directory. Scans will create a directory under the parent for each scan.')
 
     args = parser.parse_args()
+
+    if args.output[-1] != '/':
+        args.output += '/'
     return args
 
 
@@ -131,7 +136,11 @@ def process_scan(scan_name, conf, args):
     # more scan var setup
     scan_type = "-" + scan['scan']
     out_type = "-" + scan['out']
-    out_name = target_name + "_" + scan_name
+    out_name = args.output + target_name + "_" + scan_name
+
+    # create scan dir
+    if not os.path.isdir(args.output + scan_name):
+        os.mkdirs(args.output + scan_name)
 
     # time stamp
     # nmap already has a time stamp, may remove
@@ -157,6 +166,10 @@ def main():
     # Load in data
     args = handle_args()
     conf = yaml.safe_load(open(args.config))
+
+    # output dir does not exist, create it
+    if not os.path.isdir(args.output):
+        os.mkdirs(args.output)
 
     # Handle each scan
     for scan_name in conf:
