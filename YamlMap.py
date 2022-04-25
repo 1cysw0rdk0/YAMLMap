@@ -16,8 +16,8 @@ def handle_args():
     # Handle Commandline args
     parser = argparse.ArgumentParser(description='Organize and customize Nmap scans for large target sets')
 
-    parser.add_argument('-config', metavar='c', type=str, default='config.yaml', help='YAML Config file to run.')
-    parser.add_argument('-targets', metavar='i', type=str, default='targets.txt', help='List of targets separated by newlines. Can be URL\'s, CIDR\'s, or IP\'s')
+    parser.add_argument('-config', metavar='c', required=True, type=str, help='YAML Config file to run.')
+    parser.add_argument('-targets', metavar='i', required=True, type=str, help='List of targets separated by newlines. Can be URL\'s, CIDR\'s, or IP\'s')
     parser.add_argument('-output', metavar='o', type=str, default='./', help='Parent output directory. Scans will create a directory under the parent for each scan.')
 
     args = parser.parse_args()
@@ -46,6 +46,31 @@ def process_ports(ports):
 
     ports = "-p" + ",".join([str(port) for port in ports])
     return ports
+
+
+'''
+Allow for multiple output styles to be selected. 
+If user selects oA plus anything else, ignore extras.
+'''
+def process_outputs(outputs, args, scan_name):
+
+    target_name = args.targets.split(".")[-2].split("\\")[-1]
+    out_name = args.output + scan_name + '/' + target_name + "_" + scan_name
+    processed_data = []
+
+    # create scan dir
+    if not os.path.isdir(args.output + scan_name):
+        os.makedirs(args.output + scan_name)
+
+    if type(outputs) == list:
+        for output in outputs:
+            processed_data.append("-" + output)
+            processed_data.append(out_name)
+    else:
+        processed_data.append("-" + outputs)
+        processed_data.append(out_name)
+
+    return processed_data
 
 
 '''
@@ -87,18 +112,21 @@ def process_defaults(defaults, scan_object):
 '''
 Processes and executes a scan
 '''
-def process_scan(scan_name, conf, args):
+def process_scan(scan_name, conf, args, default):
     # set up vars for this scan instance
-    default = False
     scan = conf[scan_name]
     scan_object = scanObject()
     nmap = '/usr/bin/nmap'
-    target_name = args.targets.split(".")[0]
+    target_name = args.targets.split(".")[-2].split("\\")[-1]
 
     # default case flag
     is_default_case = False
     if scan_name == 'default':
         is_default_case = True
+    else:
+        # add the default settings to the current scan
+        if default:
+            scan_object = process_defaults(default, scan_object)
 
     # read in port, scripts and script args
     # translate to scan_object attributes
@@ -108,6 +136,7 @@ def process_scan(scan_name, conf, args):
         pass
 
     try:
+        scripts = None
         scan_object.scanAttributes['scripts'] = process_scripts(scan['scripts'])
     except KeyError:
         scripts = None
@@ -124,23 +153,18 @@ def process_scan(scan_name, conf, args):
     except KeyError:
         pass
 
+    try:
+        temp = "-" + scan['scan']
+        scan_object.scanAttributes['scan'] = temp
+    except Exception:
+        pass
+
     # dont attempt to execute a default case
     if is_default_case:
-        default = scan_object
-        return
+        return scan_object
 
-    # add the default settings to the current scan
-    if default:
-        scan_object = process_defaults(default, scan_object)
-
-    # more scan var setup
-    scan_type = "-" + scan['scan']
-    out_type = "-" + scan['out']
-    out_name = args.output + target_name + "_" + scan_name
-
-    # create scan dir
-    if not os.path.isdir(args.output + scan_name):
-        os.mkdirs(args.output + scan_name)
+    # setup output
+    processed_output = process_outputs(scan['out'], args, scan_name)
 
     # time stamp
     # nmap already has a time stamp, may remove
@@ -148,7 +172,10 @@ def process_scan(scan_name, conf, args):
     print(cur_time + "> Kicking off '" + scan_name + "' Scan")
 
     # begin subprocess cmd setup
-    cmd = [nmap, scan_type, out_type, out_name, "-iL", args.targets]
+    cmd = [nmap, "-iL", args.targets]
+
+    cmd.extend(processed_output)
+
     for attribute in scan_object.scanAttributes:
         if type(scan_object.scanAttributes[attribute]) is list:
             cmd.extend(scan_object.scanAttributes[attribute])
@@ -158,7 +185,7 @@ def process_scan(scan_name, conf, args):
     # Execute
     # Print for testing
     print(cur_time + "> " + ' '.join(cmd))
-    process = subprocess.run(cmd)
+    #process = subprocess.run(cmd)
 
 
 def main():
@@ -166,6 +193,7 @@ def main():
     # Load in data
     args = handle_args()
     conf = yaml.safe_load(open(args.config))
+    default = False
 
     # output dir does not exist, create it
     if not os.path.isdir(args.output):
@@ -173,7 +201,10 @@ def main():
 
     # Handle each scan
     for scan_name in conf:
-        process_scan(scan_name, conf, args)
+        default_temp = process_scan(scan_name, conf, args, default)
+
+        if default_temp != False:
+            default = default_temp
 
 
 main()
