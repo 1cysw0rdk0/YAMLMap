@@ -96,13 +96,36 @@ all:
   ports: all
 ```
 
+### Output Specification
+The ```-output``` flag specifies a directory to store the output files to. If left blank, the current directory will be used.
+
+By default, each scan defined in the config.yaml file will create a new directory to store its results in. Passing the ```--disable-subdirectories```
+flag will disable this behavior and write all output files to the ```-output``` directory.
+
+In addition, you can specify multiple output types supported by nmap (```-oA, -oX, -oN, -oG```).
+
+#### Sample YAML for multiple output types
+```YAML
+default:
+  scan: sS
+  out:
+    - oN
+    - oX
+  misc:
+    - --open
+    - -g53
+all:
+  ports: all
+```
+
 ## Planned Features
 
 - [x] Host discovery settings
 - [x] Timing and performance settings 
 - [x] Miscellaneous settings
 - [x] Default settings for all scans
-- [ ] Create directory for scan results
+- [X] Create directory for scan results
+  - [X] --disable-subdirectories
 - [ ] Aliases / scan nicknames (ex: stealth -> sS, version -> sV)
 - [ ] Option to zip results
 - [ ] Email alert when scan complete

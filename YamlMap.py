@@ -19,6 +19,7 @@ def handle_args():
     parser.add_argument('-config', metavar='c', required=True, type=str, help='YAML Config file to run.')
     parser.add_argument('-targets', metavar='i', required=True, type=str, help='List of targets separated by newlines. Can be URL\'s, CIDR\'s, or IP\'s')
     parser.add_argument('-output', metavar='o', type=str, default='./', help='Parent output directory. Scans will create a directory under the parent for each scan.')
+    parser.add_argument('--disable_subdirectories', action="store_true", help="Write all output files to the same directory")
 
     args = parser.parse_args()
 
@@ -55,12 +56,16 @@ If user selects oA plus anything else, ignore extras.
 def process_outputs(outputs, args, scan_name):
 
     target_name = args.targets.split(".")[-2].split("\\")[-1]
-    out_name = args.output + scan_name + '/' + target_name + "_" + scan_name
     processed_data = []
 
-    # create scan dir
-    if not os.path.isdir(args.output + scan_name):
-        os.makedirs(args.output + scan_name)
+    if args.disable_subdirectories:
+        out_name = args.output + target_name + "_" + scan_name
+    else:
+        out_name = args.output + scan_name + '/' + target_name + "_" + scan_name
+
+        # create scan dir
+        if not os.path.isdir(args.output + scan_name):
+            os.makedirs(args.output + scan_name)
 
     if type(outputs) == list:
         for output in outputs:
